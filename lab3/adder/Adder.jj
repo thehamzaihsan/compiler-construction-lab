@@ -1,0 +1,47 @@
+options {
+  LOOKAHEAD = 1;
+  STATIC = true;
+}
+
+
+PARSER_BEGIN(adder)
+/* Simple brace matcher. */
+public class adder {
+
+  /** Main entry point. */
+  public static void main(String args[]) throws ParseException {
+  
+  adder parser = null;
+    try {
+       parser = new adder(new java.io.FileInputStream(args[0]));
+    } 
+catch (java.io.FileNotFoundException e) 
+{
+       System.out.println("File " + args[0] + " not found, exiting");
+       System.exit(1);
+    }
+    /*adder parser = new adder(System.in);*/
+    parser.Start();
+	System.out.println("Successfully parsed.");
+  }
+
+}
+
+PARSER_END(adder)
+
+
+SKIP : { " " }
+SKIP : { "\n" | "\r" | "\r\n" }
+TOKEN : { < PLUS : "+" > }
+TOKEN : { < NUMBER : (["0"-"9"])+ > }
+
+
+/** Root production. */
+
+void Start() :
+{} {
+{System.out.println("Reading the input file: ");}
+<NUMBER> (
+<PLUS> <NUMBER>
+)* <EOF>
+}

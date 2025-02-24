@@ -1,0 +1,53 @@
+options {
+    STATIC = false; // Generate a non-static parser
+}
+
+PARSER_BEGIN(Real)
+import java.io.*;
+import java.util.Scanner;
+
+public class Real {
+    // Declare constants
+    public static final String VALID_INPUT_MESSAGE = "Input is valid: It contains valid variable declarations.";
+    public static final String INVALID_CHARACTER_MESSAGE = "Error: Input contains invalid characters.";
+    public static final String INVALID_INPUT_MESSAGE = "Error: Input is invalid.";
+    public static final String UNEXPECTED_ERROR_MESSAGE = "Unexpected error: ";
+
+    public static void main(String[] args) {
+        try {
+            Scanner scanner = new Scanner(System.in);
+            String input = scanner.nextLine();
+            InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+
+            Real parser = new Real(inputStream);
+            parser.Start();
+            System.out.println("\n" + VALID_INPUT_MESSAGE); // Use constant
+            scanner.close();
+        } catch (TokenMgrError e) {
+            System.out.println(INVALID_CHARACTER_MESSAGE); // Use constant
+        } catch (ParseException e) {
+            System.out.println(INVALID_INPUT_MESSAGE + " " + e.getMessage()); // Use constant
+        } catch (Exception e) {
+            System.out.println(UNEXPECTED_ERROR_MESSAGE + e.getMessage()); // Use constant
+        }
+    }
+}
+PARSER_END(Real)
+
+// Define tokens
+SKIP : { " " | "\t" | "\n" | "\r" | "\r\n" }
+TOKEN : {<NUM:["0"-"9"](["0"-"9"])*>}
+TOKEN : {<POINT:".">}
+
+// Grammar rule for the start symbol
+void Start() : {}
+{
+    (Declaration())*
+    <EOF>
+}
+
+// Grammar rule for a single declaration
+void Declaration() : {}
+{
+   <NUM>(<POINT><NUM>)*
+}
