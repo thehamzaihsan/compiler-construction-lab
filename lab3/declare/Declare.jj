@@ -2,14 +2,14 @@ options {
     STATIC = false; // Generate a non-static parser
 }
 
-PARSER_BEGIN(Real)
+PARSER_BEGIN(Declare)
 import java.io.*;
 import java.util.Scanner;
 
-public class Real {
+public class Declare {
     public static void main(String[] args) {
         try {
-            Real parser = new Real(new ByteArrayInputStream(new Scanner(System.in).nextLine().getBytes()));
+            Declare parser = new Declare(new ByteArrayInputStream(new Scanner(System.in).nextLine().getBytes()));
             parser.Start();
             System.out.println("\nInput is valid");
         } catch (TokenMgrError e) {
@@ -21,12 +21,19 @@ public class Real {
         }
     }
 }
-PARSER_END(Real)
+PARSER_END(Declare)
 
+//int x = 3;
 // Define tokens
 SKIP : { " " | "\t" | "\n" | "\r" | "\r\n" }
-TOKEN : {<NUM:["0"-"9"](["0"-"9"])*>}
-TOKEN : {<POINT:".">}
+TOKEN : { <FLOAT: "float"> }
+TOKEN : { <INT: "int"> }
+TOKEN : { <DOUBLE: "double"> }
+TOKEN : { <NUM:["0"-"9"](["0"-"9"])*>}
+TOKEN : { <SEMICOLON: ";"> }
+TOKEN : { <EQUAL:"=">}
+TOKEN : { <IDENTIFIER: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])*> }
+
 
 // Grammar rule for the start symbol
 void Start() : {}
@@ -38,5 +45,9 @@ void Start() : {}
 // Grammar rule for a single declaration
 void Declaration() : {}
 {
-   <NUM>(<POINT><NUM>)*
+   (<INT> | <FLOAT> | <DOUBLE>)
+    <IDENTIFIER>
+    <EQUAL>
+    <NUM>
+    <SEMICOLON>
 }

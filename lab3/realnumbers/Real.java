@@ -4,28 +4,17 @@ import java.io.*;
 import java.util.Scanner;
 
 public class Real implements RealConstants {
-    // Declare constants
-    public static final String VALID_INPUT_MESSAGE = "Input is valid: It contains valid variable declarations.";
-    public static final String INVALID_CHARACTER_MESSAGE = "Error: Input contains invalid characters.";
-    public static final String INVALID_INPUT_MESSAGE = "Error: Input is invalid.";
-    public static final String UNEXPECTED_ERROR_MESSAGE = "Unexpected error: ";
-
     public static void main(String[] args) {
         try {
-            Scanner scanner = new Scanner(System.in);
-            String input = scanner.nextLine();
-            InputStream inputStream = new ByteArrayInputStream(input.getBytes());
-
-            Real parser = new Real(inputStream);
+            Real parser = new Real(new ByteArrayInputStream(new Scanner(System.in).nextLine().getBytes()));
             parser.Start();
-            System.out.println("\n" + VALID_INPUT_MESSAGE); // Use constant
-            scanner.close();
+            System.out.println("\nInput is valid");
         } catch (TokenMgrError e) {
-            System.out.println(INVALID_CHARACTER_MESSAGE); // Use constant
+            System.out.println("Error: Input contains invalid characters.");
         } catch (ParseException e) {
-            System.out.println(INVALID_INPUT_MESSAGE + " " + e.getMessage()); // Use constant
+            System.out.println("Error: Input is invalid. " + e.getMessage());
         } catch (Exception e) {
-            System.out.println(UNEXPECTED_ERROR_MESSAGE + e.getMessage()); // Use constant
+            System.out.println("Unexpected error: " + e.getMessage());
         }
     }
 
