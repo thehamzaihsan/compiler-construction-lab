@@ -1,0 +1,81 @@
+/**
+ * JJTree template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  static = true;
+}
+
+PARSER_BEGIN(Calculator)
+
+public class Calculator
+{
+  public static void main(String args [])
+  {
+    System.out.println("Reading from standard input...");
+    System.out.print("Enter an expression like \"1+(2+3)*var;\" :");
+    new Calculator(System.in);
+    try
+    {
+      SimpleNode n = Calculator.Start();
+      n.dump("");
+      System.out.println("Thank you.");
+    }
+    catch (Exception e)
+    {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+    }
+  }
+}
+
+PARSER_END(Calculator)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| < "//" (~[ "\n", "\r" ])*
+    (
+      "\n"
+    | "\r"
+    | "\r\n"
+    ) >
+| < "/*" (~[ "*" ])* "*"
+    (
+      ~[ "/" ] (~[ "*" ])* "*"
+    )*
+    "/" >
+}
+
+
+
+TOKEN : { <NUM:["0"-"9"](["0"-"9"])*>}
+TOKEN : { <PLUS:"+">}
+TOKEN : { <MINUS:"-">}
+
+
+SimpleNode Start() :
+{}
+{
+  Expression() ";"
+  {
+    return jjtThis;
+  }
+}
+
+void Expression() :
+{}
+{
+  Number() (Operator() Number())*
+}
+
+void Operator():{}{
+  <PLUS> | <MINUS>
+}
+
+void Number(): {}{
+  <NUM>
+}

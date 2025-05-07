@@ -1,4 +1,6 @@
 
+for (int i = 0; i < children.length; ++i) {
+    SimpleNode n 
 
 public class MinMax {
     public static void main(String[] args) {

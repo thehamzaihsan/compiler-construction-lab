@@ -5,13 +5,127 @@ options {
 PARSER_BEGIN(Declare)
 import java.io.*;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.HashMap;
+import lab3.declare.Symbol;
 
 public class Declare {
+  //  private static HashMap<Object,Object> symTab = new HashMap<>();
+    options {
+  STATIC = false;
+  MULTI = true;
+  NODE_PREFIX = "";
+  VISITOR = false;
+}
+
+PARSER_BEGIN(MiniLang)
+public class MiniLang {
+  public static void main(String[] args) throws ParseException {
+    MiniLang parser = new MiniLang(System.in);
+    SimpleNode root = parser.Program();
+    root.dump("");
+
+    System.out.println("\nSemantic Analysis Output:");
+    root.semanticCheck();
+  }
+
+  static Map<String, String> symbolTable = new HashMap<>();
+}
+PARSER_END(MiniLang)
+
+SKIP : { " " | "\t" | "\n" | "\r" }
+
+TOKEN :
+{
+  < INT: "int" >
+| < FLOAT: "float" >
+| < IDENTIFIER: (["a"-"z", "A"-"Z"])+ >
+| < NUMBER: (["0"-"9"])+("."["0"-"9"]+)? >
+| < ASSIGN: "=" >
+| < SEMI: ";" >
+| < PLUS: "+" >
+}
+
+void Program() :
+{}
+{
+  (Statement())* <EOF>
+}
+
+void Statement() :
+{}
+{
+    VarDecl() <SEMI>
+  | Assignment() <SEMI>
+}
+
+void VarDecl() :
+{
+  Token t;
+  Token id;
+  String type = "";
+}
+{
+  ( t = <INT> { type = "int"; } 
+  | t = <FLOAT> { type = "float"; } )
+  id = <IDENTIFIER> {
+    if (symbolTable.containsKey(id.image)) {
+      System.err.println("Semantic Error: Variable '" + id.image + "' already declared.");
+    } else {
+      symbolTable.put(id.image, type);
+    }
+  }
+}
+
+void Assignment() #Assignment :
+{
+  Token id;
+}
+{
+  id = <IDENTIFIER> {
+    if (!symbolTable.containsKey(id.image)) {
+      System.err.println("Semantic Error: Variable '" + id.image + "' not declared.");
+      jjtThis.setType("undefined");
+    } else {
+      jjtThis.setType(symbolTable.get(id.image)); // set LHS type
+    }
+  }
+  <ASSIGN>
+  Expression() // RHS
+}
+
+void Expression() #Expression :
+{}
+{
+  Term()
+  ( <PLUS> Term() )?
+}
+
+void Term() #Term :
+{
+  Token t;
+}
+{
+  t = <IDENTIFIER> {
+    if (!symbolTable.containsKey(t.image)) {
+      System.err.println("Semantic Error: Variable '" + t.image + "' not declared.");
+      jjtThis.setType("undefined");
+    } else {
+      jjtThis.setType(symbolTable.get(t.image));
+    }
+  }
+|
+  t = <NUMBER> {
+    jjtThis.setType(t.image.contains(".") ? "float" : "int");
+  }
+}
+
     public static void main(String[] args) {
         try {
             Declare parser = new Declare(new ByteArrayInputStream(new Scanner(System.in).nextLine().getBytes()));
             parser.Start();
             System.out.println("\nInput is valid");
+            symTab.show();
         } catch (TokenMgrError e) {
             System.out.println("Error: Input contains invalid characters.");
         } catch (ParseException e) {
@@ -20,10 +134,15 @@ public class Declare {
             System.out.println("Unexpected error: " + e.getMessage());
         }
     }
+
+  
 }
 PARSER_END(Declare)
 
 //int x = 3;
+
+START((INT | FLOAT | DOUBLE) VAR "=" NUM ;)*END
+
 // Define tokens
 SKIP : { " " | "\t" | "\n" | "\r" | "\r\n" }
 TOKEN : { <FLOAT: "float"> }
@@ -43,11 +162,15 @@ void Start() : {}
 }
 
 // Grammar rule for a single declaration
-void Declaration() : {}
+void Declaration() : 
 {
-   (<INT> | <FLOAT> | <DOUBLE>)
-    <IDENTIFIER>
+    Token id, var;
+}
+{
+    (id=<INT>|id=<DOUBLE>|id=<FLOAT>) var=<IDENTIFIER> {
+        symTab.put(var.image, id.image);
+    }
     <EQUAL>
-    <NUM>
+    <NUM> 
     <SEMICOLON>
 }

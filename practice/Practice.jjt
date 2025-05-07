@@ -1,0 +1,87 @@
+options
+{
+  static = true;
+}
+
+PARSER_BEGIN(Practice)
+
+public class Practice
+{
+  public static void main(String args [])
+  {
+    // clear the terminal
+    System.out.print("\033[H\033[2J");
+    System.out.flush();
+
+    //enter the string
+    System.out.print("Enter an expression:");
+    Practice parser = new Practice(System.in);
+
+    //output of the expression
+    try{
+        SimpleNode n = parser.Start();
+        n.dump("");
+        System.out.println("Thank you.");
+    }
+    catch (Exception e)
+    {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+    }
+
+    //program end
+  }
+}
+
+PARSER_END(Practice)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| < "//" (~[ "\n", "\r" ])*
+    (
+      "\n"
+    | "\r"
+    | "\r\n"
+    ) >
+| < "/*" (~[ "*" ])* "*"
+    (
+      ~[ "/" ] (~[ "*" ])* "*"
+    )*
+    "/" >
+}
+
+TOKEN : {
+  < PLUS : "+" >
+| < MINUS : "-" >
+| < MULTIPLY : "*" >
+| < DIVIDE : "/" >
+| < NUMBER : (["0"-"9"])+ >
+}
+
+SimpleNode Start() :
+{}
+{
+  Expression()
+  {
+    return jjtThis;
+  }
+}
+
+void Expression() : {} 
+{
+  Term() ( ( <PLUS> | <MINUS> ) Term() )*
+}
+
+void Term() : {}
+{
+  Factor() ( ( <MULTIPLY> | <DIVIDE> ) Factor() )*
+}
+
+void Factor() : {}
+{
+  <NUMBER>
+}

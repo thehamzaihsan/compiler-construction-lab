@@ -28,6 +28,7 @@ SKIP : { " " | "\t" | "\n" | "\r" | "\r\n" }
 TOKEN : {<NUM:["0"-"9"](["0"-"9"])*>}
 TOKEN : {<POINT:".">}
 
+
 // Grammar rule for the start symbol
 void Start() : {}
 {

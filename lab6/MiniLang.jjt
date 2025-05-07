@@ -1,0 +1,131 @@
+options {
+  STATIC = true;
+  NODE_DEFAULT_VOID = false;
+  MULTI = true;
+}
+
+PARSER_BEGIN(MiniLang)
+
+public class MiniLang {
+  private static MiniLang parserInstance;
+
+  public static void main(String args[]) {
+    System.out.print("\033[H\033[2J");
+    System.out.flush();
+    System.out.print("Enter expression: ");
+
+    parserInstance = new MiniLang(System.in);
+    try {
+      ASTTypeNode n = parserInstance.Start();
+      n.dump("");
+      System.out.println("Type checking complete.");
+    } catch (Exception e) {
+      System.out.println("Error: " + e.getMessage());
+    }
+  }
+
+  public void verifyTypes(ASTTypeNode node1, ASTTypeNode node2) {
+    if (!node1.getType().equals(node2.getType())) {
+      throw new RuntimeException("TYPE MISMATCH: " +
+        node1.getType() + " vs " + node2.getType());
+    }
+  }
+}
+
+PARSER_END(MiniLang)
+
+// === Custom Node Class ===
+class ASTTypeNode extends SimpleNode {
+  private String type;
+
+  public ASTTypeNode(int id) {
+    super(id);
+  }
+
+  public void setType(String t) {
+    this.type = t;
+  }
+
+  public String getType() {
+    return this.type;
+  }
+}
+
+// === Node Declaration ===
+NODE: TypeNode : ASTTypeNode
+
+// === Skip Whitespace ===
+SKIP :
+{
+  " " | "\t" | "\n" | "\r"
+}
+
+// === Tokens ===
+TOKEN : {
+    < INT : "int" >
+  | < FLOAT : "float" >
+  | < ID : ["a"-"z"] (["a"-"z","0"-"9"])* >
+  | < NUMBER : ["0"-"9"]+ >
+  | < FLOAT_NUM : ["0"-"9"]+ "." ["0"-"9"]+ >
+}
+
+// === Grammar Rules ===
+
+TypeNode Start() :
+{}
+{
+  ( Assignment() )* <EOF>
+  {
+    return jjtThis;
+  }
+}
+
+void Assignment() :
+{}
+{
+  Variable() "=" Expression() ";"
+  {
+    // Types inferred through nodes
+  }
+}
+
+TypeNode Variable() :
+{}
+{
+  <ID>
+  {
+    ((ASTTypeNode)jjtThis).setType("int"); // Simplified assumption
+    return jjtThis;
+  }
+}
+
+TypeNode Expression() :
+{}
+{
+  Term() ( "+" Term() )*
+  {
+    return jjtThis;
+  }
+}
+
+TypeNode Term() :
+{}
+{
+    <NUMBER>
+    {
+      ((ASTTypeNode)jjtThis).setType("int");
+      return jjtThis;
+    }
+  |
+    <FLOAT_NUM>
+    {
+      ((ASTTypeNode)jjtThis).setType("float");
+      return jjtThis;
+    }
+  |
+    <ID>
+    {
+      ((ASTTypeNode)jjtThis).setType("int"); // Again assuming variable type is int
+      return jjtThis;
+    }
+}

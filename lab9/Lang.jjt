@@ -1,0 +1,76 @@
+
+options {
+    STATIC = false;
+    NODE_DEFAULT_VOID = false;  // ← Critical: Forces JJTree to generate separate classes
+    NODE_CLASS_PREFIX = "AST";  // Optional: Adds "AST" prefix to node classes
+}
+
+PARSER_BEGIN(Lang)
+
+public class Lang {
+  public static void main(String[] args) {
+    try {
+      Lang parser = new Lang(System.in);
+      SimpleNode root = parser.Start();
+      System.out.println("Parsing completed successfully.");
+      root.dump("");
+     
+    } catch (Exception e) {
+      System.out.println("Error parsing input:");
+      System.out.println(e.getMessage());
+    }
+  }
+}
+
+PARSER_END(Lang)
+
+SKIP : {
+  " "
+| "\t" 
+| "\n"
+| "\r"
+}
+
+
+TOKEN : {
+    < ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])* >
+|   < PLUS: "+" >
+|   < MINUS: "-" >
+|   < STAR: "*" >
+|   < SLASH: "/" >
+|   < LPAREN: "(" >
+|   < RPAREN: ")" >
+|   <SEMICOLON: ";">
+}
+
+SimpleNode Start() : {} {
+  E() 
+  { return jjtThis; }
+}
+
+
+// AdditiveExpression
+void E() #AdditiveExpression : {
+      Token token;
+}
+{
+    T() (  (token="+"|token="-") T() {jjtThis.jjtSetValue(token.image);} )*
+}
+
+// MultiplicativeExpression
+void T() #MultiplicativeExpression : {
+      Token t;
+}
+{
+    F() ( (t=<STAR>|t=<SLASH>) F() {jjtThis.jjtSetValue(t.image);} )*
+   
+}
+
+// Primary expression
+void F() #Identifier : {
+      Token t;
+}
+{
+    t=<ID> {jjtThis.jjtSetValue(t.image);}
+|   "(" E() ")"
+}

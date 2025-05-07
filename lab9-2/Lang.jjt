@@ -1,0 +1,94 @@
+
+options {
+    STATIC = false;
+    NODE_DEFAULT_VOID = false;
+    NODE_CLASS_PREFIX = "AST";
+}
+
+PARSER_BEGIN(Lang)
+
+public class Lang {
+  public static void main(String[] args) {
+    try {
+      Lang parser = new Lang(System.in);
+      SimpleNode root = parser.Start();
+      System.out.println("Parsing completed successfully.");
+      root.dump("");
+      IRGeneration irGen = new IRGeneration();
+      irGen.generateIR(root);
+    } catch (Exception e) {
+      System.out.println("Error parsing input:");
+      System.out.println(e.getMessage());
+    }
+  }
+}
+
+PARSER_END(Lang)
+
+SKIP : {
+  " "
+| "\t" 
+| "\n"
+| "\r"
+}
+
+
+TOKEN : {
+    < ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])* >
+|   < PLUS: "+" >
+|   < MINUS: "-" >
+|   < STAR: "*" >
+|   < SLASH: "/" >
+|   < LPAREN: "(" >
+|   < RPAREN: ")" >
+|   <SEMICOLON: ";">
+}
+
+SimpleNode Start() : {} {
+  Expression() 
+  { return jjtThis; }
+}
+
+void Expression() #Assignment : {} {
+    LHS() "=" RHS()
+    {jjtThis.jjtSetValue("=");}
+}
+
+void LHS() #LHS : {
+    Token t;
+} {
+    t=<ID> {jjtThis.jjtSetValue(t.image);}
+}
+
+void RHS() #RHS : {} {
+    AdditiveExpression()
+}
+
+void AdditiveExpression() #AdditiveExpression : {
+    Token op;
+} {
+    MultiplicativeExpression() 
+    (
+        (op=<PLUS>|op=<MINUS>) 
+        MultiplicativeExpression() 
+        {jjtThis.jjtSetValue(op.image);}
+    )*
+}
+
+void MultiplicativeExpression() #MultiplicativeExpression : {
+    Token op;
+} {
+    PrimaryExpression()
+    (
+        (op=<STAR>|op=<SLASH>) 
+        PrimaryExpression()
+        {jjtThis.jjtSetValue(op.image);}
+    )*
+}
+
+void PrimaryExpression() #Identifier : {
+    Token t;
+} {
+    t=<ID> {jjtThis.jjtSetValue(t.image);}
+    | "(" AdditiveExpression() ")"
+}
